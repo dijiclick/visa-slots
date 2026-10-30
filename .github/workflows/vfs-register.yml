@@ -2,10 +2,14 @@ name: vfs-register
 on:
   workflow_dispatch:
     inputs:
-      dump: { description: "1 = only print the form", default: "0" }
+      skip_register: { description: "1 = account exists, only test login", default: "0" }
+      mission: { default: "nld" }
+permissions:
+  contents: read
 jobs:
   register:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -13,7 +17,9 @@ jobs:
       - run: pip install patchright && patchright install chrome
       - run: xvfb-run -a python probe/vfs_register.py
         env:
-          DUMP: ${{ inputs.dump }}
+          GH_TOKEN: ${{ github.token }}
+          SKIP_REGISTER: ${{ inputs.skip_register }}
+          MISSION: ${{ inputs.mission }}
           VFS_EMAIL: ${{ secrets.VFS_EMAIL }}
           VFS_PASSWORD: ${{ secrets.VFS_PASSWORD }}
           VFS_PHONE: ${{ secrets.VFS_PHONE }}
