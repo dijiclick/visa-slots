@@ -44,6 +44,29 @@ async def main():
         await page.screenshot(path="shot_reg.png", full_page=True)
         if DUMP:
             await ctx.close(); return
+        await page.fill("#inputEmail", os.environ["VFS_EMAIL"])
+        await page.fill("#password", os.environ["VFS_PASSWORD"])
+        await page.fill("#confirmPassword", os.environ["VFS_PASSWORD"])
+        await page.click("mat-select[formcontrolname=dialcode]")
+        await asyncio.sleep(1)
+        opts = page.locator("mat-option")
+        n = await opts.count()
+        texts = [await opts.nth(i).inner_text() for i in range(n)]
+        pick = next((i for i, t in enumerate(texts) if t.strip().startswith("90") or "+90" in t or "(90)" in t), None)
+        if pick is None:
+            pick = next((i for i, t in enumerate(texts) if "Turk" in t or "Türk" in t), None)
+        print("dial options sample", texts[:5], "pick", pick, texts[pick] if pick is not None else None, flush=True)
+        await opts.nth(pick).click()
+        await page.fill("input[formcontrolname=contact]", os.environ["VFS_PHONE"])
+        for fc in ("processPerDataAgreed", "intTransPerDataAgreed", "termAndConditionAgreed"):
+            await page.click(f"mat-checkbox[formcontrolname={fc}] input")
+        tok = await turnstile(page)
+        print("turnstile", len(tok), flush=True)
+        await page.screenshot(path="shot_reg_filled.png", full_page=True)
+        await page.click("#trigger")
+        await asyncio.sleep(15)
+        print("AFTER", page.url, (await page.evaluate("() => document.body.innerText"))[:1500], flush=True)
+        await page.screenshot(path="shot_reg_done.png", full_page=True)
         await ctx.close()
 
 asyncio.run(main())

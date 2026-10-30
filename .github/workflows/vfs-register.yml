@@ -2,7 +2,7 @@ name: vfs-register
 on:
   workflow_dispatch:
     inputs:
-      dump: { description: "1 = only print the form", default: "1" }
+      dump: { description: "1 = only print the form", default: "0" }
 jobs:
   register:
     runs-on: ubuntu-latest
@@ -16,6 +16,7 @@ jobs:
           DUMP: ${{ inputs.dump }}
           VFS_EMAIL: ${{ secrets.VFS_EMAIL }}
           VFS_PASSWORD: ${{ secrets.VFS_PASSWORD }}
+          VFS_PHONE: ${{ secrets.VFS_PHONE }}
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: reg, path: "shot_*.png" }
