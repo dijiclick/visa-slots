@@ -59,6 +59,9 @@ def main() -> None:
     st = publish.load()
     st["run_url"] = os.environ.get("RUN_URL", "")
     st["started_at"] = now_iso()
+    st["countries"] = [{k: c.get(k, "") for k in ("code", "name", "flag", "provider", "check", "url", "note")} for c in COUNTRIES]
+    known = {k for p in providers for k, _ in p.targets()} | {r.key for r in manual_results()}
+    st["targets"] = {k: v for k, v in st.get("targets", {}).items() if k in known}
     st, _ = state_mod.apply(st, manual_results(), now_iso())
     due = {p.NAME: 0.0 for p in providers}
     deadline = time.time() + args.minutes * 60

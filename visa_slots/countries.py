@@ -1,7 +1,8 @@
 """All 29 Schengen states, as seen from Istanbul (researched 2026-10-30).
 
 provider: who takes the appointment in Istanbul.
-check:    "vfs" | "kosmos" -> checked automatically; "manual" -> only listed with the booking link and why.
+check:    "vfs" -> own VFS login; "public" -> read from public trackers (vizetakip.app, visacatcher.bot, t.me/TurkiyeVFSBot);
+          "manual" -> only listed with the booking link and why.
 """
 from .models import MANUAL, Result
 
@@ -21,14 +22,14 @@ COUNTRIES = [
     dict(code="DE", name="Germany", flag="🇩🇪", provider="iDATA", check="manual",
          url="https://de-tr-appointment.idata.com.tr/tr",
          note="Waiting list: you register at iDATA and they e-mail you a date in order. No open slots to watch."),
-    dict(code="GR", name="Greece", flag="🇬🇷", provider="Kosmos Vize", check="kosmos",
+    dict(code="GR", name="Greece", flag="🇬🇷", provider="Kosmos Vize", check="public",
          url="https://basvuru.kosmosvize.com.tr/appointmentform"),
-    dict(code="HU", name="Hungary", flag="🇭🇺", provider="AS Visa", check="manual",
+    dict(code="HU", name="Hungary", flag="🇭🇺", provider="AS Visa", check="public",
          url="https://www.as-visa.com/DynamicPage.aspx?ID=51",
          note="AS Visa site is behind a Cloudflare challenge that blocks automated checks."),
     dict(code="IS", name="Iceland", flag="🇮🇸", provider="VFS Global (via Denmark)", check="manual",
          url=VFS.format(m="dnk"), note="No Icelandic mission in Turkey; Denmark handles it, so watch Denmark."),
-    dict(code="IT", name="Italy", flag="🇮🇹", provider="iDATA", check="manual",
+    dict(code="IT", name="Italy", flag="🇮🇹", provider="iDATA", check="public",
          url="https://it-tr-appointment.idata.com.tr/tr",
          note="iDATA needs login + image captcha + e-mail code, and blocks datacenter IPs."),
     dict(code="LV", name="Latvia", flag="🇱🇻", provider="VFS Global", check="vfs", mission="lva"),
@@ -40,7 +41,7 @@ COUNTRIES = [
     dict(code="NL", name="Netherlands", flag="🇳🇱", provider="VFS Global", check="vfs", mission="nld"),
     dict(code="NO", name="Norway", flag="🇳🇴", provider="VFS Global", check="vfs", mission="nor"),
     dict(code="PL", name="Poland", flag="🇵🇱", provider="VFS Global", check="vfs", mission="pol"),
-    dict(code="PT", name="Portugal", flag="🇵🇹", provider="AS Visa", check="manual",
+    dict(code="PT", name="Portugal", flag="🇵🇹", provider="AS Visa", check="public",
          url="https://www.as-visa.com/",
          note="AS Visa site is behind a Cloudflare challenge that blocks automated checks."),
     dict(code="RO", name="Romania", flag="🇷🇴", provider="Consulate (e-Viza)", check="manual",
@@ -50,7 +51,7 @@ COUNTRIES = [
          url="https://software.blsslovakiavisa.com/appointments/login",
          note="BLS needs an account and an hCaptcha for every look at the calendar."),
     dict(code="SI", name="Slovenia", flag="🇸🇮", provider="VFS Global", check="vfs", mission="svn"),
-    dict(code="ES", name="Spain", flag="🇪🇸", provider="BLS International", check="manual",
+    dict(code="ES", name="Spain", flag="🇪🇸", provider="BLS International", check="public",
          url="https://turkey.blsspainglobal.com/Global/account/login",
          note="BLS needs an account, an image captcha and e-mail verification."),
     dict(code="SE", name="Sweden", flag="🇸🇪", provider="VFS Global", check="vfs", mission="swe"),
