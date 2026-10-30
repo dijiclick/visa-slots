@@ -88,17 +88,27 @@ async def main():
             sent_at = time.time()
             await page.click("#trigger")
             print("OTP_WAITING sms sent", flush=True)
-            code = await wait_otp(sent_at - 120)
+            code = await wait_otp(sent_at)
             print("otp received:", bool(code), flush=True)
             if not code:
                 await page.screenshot(path="shot_reg_nootp.png", full_page=True)
                 return
-            otp_input = page.locator("input[formcontrolname*=otp i], input[id*=otp i], input[type=password]").first
+            fields = await page.evaluate("() => [...document.querySelectorAll('input')].filter(e => e.offsetParent).map(e => e.id + '|' + e.getAttribute('formcontrolname') + '|' + e.type)")
+            print("visible inputs", fields, flush=True)
+            otp_input = page.locator("input[formcontrolname*=otp i]:visible, input[id*=otp i]:visible").first
+            if not await otp_input.count():
+                otp_input = page.locator("input[type=password]:visible").first
             await otp_input.fill(code)
             # the OTP form has its own Turnstile widget
             await asyncio.sleep(2)
             print("turnstile2", len(await turnstile(page)), flush=True)
-            await page.get_by_role("button", name="Register").click()
+            btn = page.locator("button:visible", has_text="Register").first
+            for _ in range(10):
+                if await btn.is_enabled():
+                    break
+                await asyncio.sleep(2)
+            await page.screenshot(path="shot_reg_otp.png", full_page=True)
+            await btn.click(timeout=10000)
             await asyncio.sleep(12)
             print("AFTER_REGISTER", page.url, await text(page), flush=True)
             await page.screenshot(path="shot_reg_done.png", full_page=True)
@@ -152,4 +162,11 @@ async def main():
         json.dump(log, open("api_log.json", "w"), indent=1)
         await ctx.close()
 
-asyncio.run(main())
+async def safe():
+    try:
+        await main()
+    except Exception as e:
+        print("FAILED", type(e).__name__, str(e)[:300], flush=True)
+        raise
+
+asyncio.run(safe())
