@@ -8,7 +8,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install curl_cffi patchright && patchright install chrome
-      - run: xvfb-run -a python probe/probe2.py
+      - run: xvfb-run -a python probe/probe3.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
