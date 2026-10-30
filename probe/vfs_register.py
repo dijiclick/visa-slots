@@ -88,28 +88,34 @@ async def main():
             sent_at = time.time()
             await page.click("#trigger")
             print("OTP_WAITING sms sent", flush=True)
-            code = await wait_otp(sent_at)
-            print("otp received:", bool(code), flush=True)
-            if not code:
-                await page.screenshot(path="shot_reg_nootp.png", full_page=True)
-                return
-            fields = await page.evaluate("() => [...document.querySelectorAll('input')].filter(e => e.offsetParent).map(e => e.id + '|' + e.getAttribute('formcontrolname') + '|' + e.type)")
-            print("visible inputs", fields, flush=True)
-            otp_input = page.locator("input[formcontrolname*=otp i]:visible, input[id*=otp i]:visible").first
-            if not await otp_input.count():
-                otp_input = page.locator("input[type=password]:visible").first
-            await otp_input.fill(code)
-            # the OTP form has its own Turnstile widget
-            await asyncio.sleep(2)
-            print("turnstile2", len(await turnstile(page)), flush=True)
-            btn = page.locator("button:visible", has_text="Register").first
-            for _ in range(10):
-                if await btn.is_enabled():
-                    break
-                await asyncio.sleep(2)
-            await page.screenshot(path="shot_reg_otp.png", full_page=True)
-            await btn.click(timeout=10000)
-            await asyncio.sleep(12)
+            since = sent_at
+            for attempt in range(4):
+                code = await wait_otp(since)
+                print("otp received:", bool(code), flush=True)
+                if not code:
+                    await page.screenshot(path="shot_reg_nootp.png", full_page=True)
+                    return
+                since = time.time()
+                otp_input = page.locator("input[formcontrolname=otp]:visible").first
+                await otp_input.fill("")
+                await otp_input.fill(code)
+                await asyncio.sleep(1)
+                print("turnstile2", len(await turnstile(page)), flush=True)
+                btn = page.locator("button:visible", has_text="Register").first
+                for _ in range(10):
+                    if await btn.is_enabled():
+                        break
+                    await asyncio.sleep(2)
+                n_before = len(log)
+                await btn.click(timeout=10000)
+                await asyncio.sleep(10)
+                reg = [x for x in log[n_before:] if x["url"].endswith("/user/registration")]
+                if reg and "Invalid OTP" in reg[-1]["body"]:
+                    print("INVALID_OTP waiting for another code", flush=True)
+                    # the Turnstile widget is single-use; reset it for the next try
+                    await page.evaluate("() => window.turnstile && window.turnstile.reset && window.turnstile.reset()")
+                    continue
+                break
             print("AFTER_REGISTER", page.url, await text(page), flush=True)
             await page.screenshot(path="shot_reg_done.png", full_page=True)
 
