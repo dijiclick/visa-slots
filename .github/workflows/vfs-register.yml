@@ -4,6 +4,7 @@ on:
     inputs:
       skip_register: { description: "1 = account exists, only test login", default: "0" }
       mission: { default: "nld" }
+      activate_url: { default: "" }
 permissions:
   contents: read
 jobs:
@@ -20,6 +21,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SKIP_REGISTER: ${{ inputs.skip_register }}
           MISSION: ${{ inputs.mission }}
+          ACTIVATE_URL: ${{ inputs.activate_url }}
           VFS_EMAIL: ${{ secrets.VFS_EMAIL }}
           VFS_PASSWORD: ${{ secrets.VFS_PASSWORD }}
           VFS_PHONE: ${{ secrets.VFS_PHONE }}

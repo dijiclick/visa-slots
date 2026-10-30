@@ -119,6 +119,12 @@ async def main():
             print("AFTER_REGISTER", page.url, await text(page), flush=True)
             await page.screenshot(path="shot_reg_done.png", full_page=True)
 
+        if os.environ.get("ACTIVATE_URL"):
+            await page.goto(os.environ["ACTIVATE_URL"], wait_until="domcontentloaded", timeout=90000)
+            await asyncio.sleep(15)
+            print("AFTER_ACTIVATE", page.url, await text(page), flush=True)
+            await page.screenshot(path="shot_activate.png", full_page=True)
+
         # ---- log in once and see what the account can do
         await page.goto(f"https://visa.vfsglobal.com/tur/en/{MISSION}/login", wait_until="domcontentloaded", timeout=90000)
         await asyncio.sleep(8)
