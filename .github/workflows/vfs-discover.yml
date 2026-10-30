@@ -1,0 +1,29 @@
+name: vfs-discover
+on:
+  workflow_dispatch:
+    inputs:
+      missions: { default: "nld,fra,aut,bel,bgr,cze,dnk,est,fin,hrv,ltu,lux,lva,mlt,nor,pol,svn,swe,che" }
+permissions:
+  contents: read
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install patchright cryptography && patchright install chrome
+      - run: xvfb-run -a python probe/vfs_discover.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MISSIONS: ${{ inputs.missions }}
+          VFS_EMAIL: ${{ secrets.VFS_EMAIL }}
+          VFS_PASSWORD: ${{ secrets.VFS_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discover
+          path: |
+            shot_*.png
+            vfs_discovery.json
