@@ -181,4 +181,5 @@ async def safe():
         print("FAILED", type(e).__name__, str(e)[:300], flush=True)
         raise
 
-asyncio.run(safe())
+if __name__ == "__main__":
+    asyncio.run(safe())
