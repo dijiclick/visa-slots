@@ -1,0 +1,21 @@
+name: vfs-register
+on:
+  workflow_dispatch:
+    inputs:
+      dump: { description: "1 = only print the form", default: "1" }
+jobs:
+  register:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install patchright && patchright install chrome
+      - run: xvfb-run -a python probe/vfs_register.py
+        env:
+          DUMP: ${{ inputs.dump }}
+          VFS_EMAIL: ${{ secrets.VFS_EMAIL }}
+          VFS_PASSWORD: ${{ secrets.VFS_PASSWORD }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: reg, path: "shot_*.png" }
