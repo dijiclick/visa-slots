@@ -49,3 +49,25 @@ def test_error_while_open_does_not_close():
     assert a == [] and s["targets"]["fra/IST/tourism"]["status"] == OPEN
     s, a = apply(s, [r(OPEN)], "2026-10-30T10:02:00+00:00")
     assert a == []
+
+
+def test_closed_event_has_open_window():
+    s, _ = apply({}, [r(OPEN, "2026-12-01")], "2026-10-30T10:00:00+00:00")
+    s, _ = apply(s, [r(CLOSED)], "2026-10-30T10:07:00+00:00")
+    e = s["events"][-1]
+    assert e["kind"] == "closed" and e["opened_at"] == "2026-10-30T10:00:00+00:00"
+    assert e["open_minutes"] == 7 and e["earliest"] == "2026-12-01"
+
+
+def test_outage_logged_after_5_min_with_duration():
+    s, _ = apply({}, [r(CLOSED)], "2026-10-30T10:00:00+00:00")
+    s, _ = apply(s, [Result(key="fra/IST/tourism", country="FR", provider="vfs", status=ERROR, detail="HTTP 403")],
+                 "2026-10-30T10:01:00+00:00")
+    s, _ = apply(s, [r(ERROR)], "2026-10-30T10:03:00+00:00")
+    assert [e["kind"] for e in s.get("events", [])] == []      # short blips stay out of the history
+    s, _ = apply(s, [r(ERROR)], "2026-10-30T10:06:00+00:00")
+    s, _ = apply(s, [r(ERROR)], "2026-10-30T10:08:00+00:00")
+    assert [e["kind"] for e in s["events"]] == ["down"]
+    assert s["events"][0]["at"] == "2026-10-30T10:01:00+00:00"
+    s, _ = apply(s, [r(CLOSED)], "2026-10-30T10:21:00+00:00")
+    assert [e["kind"] for e in s["events"]] == ["down", "up"] and s["events"][1]["down_minutes"] == 20
